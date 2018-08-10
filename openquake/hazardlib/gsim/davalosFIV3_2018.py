@@ -73,7 +73,7 @@ class DavalosMiranda2018FIV3(GMPE):
 
         mean = (self._get_magnitude_scaling_term(C, rup.mag) +
                 self._get_path_scaling(C, dists, rup.mag))
-        stddevs = self._get_stddevs(C, stddev_types)
+        stddevs = self._get_stddevs(C, stddev_types, dists)
         return mean, stddevs
 
     def _get_magnitude_scaling_term(self, C, mag):
@@ -96,7 +96,7 @@ class DavalosMiranda2018FIV3(GMPE):
             np.log(R / self.CONSTS['Rref'])
         return scaling
 
-    def _get_stddevs(self, C, stddev_types):
+    def _get_stddevs(self, C, stddev_types, dists):
         """
         Returns the aleatory uncertainty terms
         """
@@ -106,11 +106,11 @@ class DavalosMiranda2018FIV3(GMPE):
         for stddev_type in stddev_types:
             assert stddev_type in self.DEFINED_FOR_STANDARD_DEVIATION_TYPES
             if stddev_type == const.StdDev.TOTAL:
-                stddevs.append(np.sqrt((tau ** 2.0) + (phi ** 2.0)))
+                stddevs.append(np.sqrt((tau ** 2.0)+(phi ** 2.0))+dists.rjb*0)
             elif stddev_type == const.StdDev.INTRA_EVENT:
-                stddevs.append(phi)
+                stddevs.append(phi+dists.rjb*0)
             elif stddev_type == const.StdDev.INTER_EVENT:
-                stddevs.append(tau)
+                stddevs.append(tau+dists.rjb*0)
         return stddevs
 
     CONSTS = {"Rref": 1.0}
