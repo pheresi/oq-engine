@@ -82,7 +82,7 @@ class DavalosMiranda2018FIV3(GMPE):
         """
         dmag = mag - C['Mh']
         if mag < C['Mh']:
-            mag_term = C['e2'] * dmag + C['e3'] * dmag**2
+            mag_term = C['e2'] * dmag + C['e3'] * dmag ** 2
         else:
             mag_term = C['e4'] * dmag
         return C['e1'] + mag_term
@@ -106,11 +106,12 @@ class DavalosMiranda2018FIV3(GMPE):
         for stddev_type in stddev_types:
             assert stddev_type in self.DEFINED_FOR_STANDARD_DEVIATION_TYPES
             if stddev_type == const.StdDev.TOTAL:
-                stddevs.append(np.sqrt((tau ** 2.0)+(phi ** 2.0))+dists.rjb*0)
+                stddevs.append(np.sqrt((tau ** 2.0)+(phi ** 2.0)) + 
+                                                             dists.rjb * 0)
             elif stddev_type == const.StdDev.INTRA_EVENT:
-                stddevs.append(phi+dists.rjb*0)
+                stddevs.append(phi + dists.rjb * 0)
             elif stddev_type == const.StdDev.INTER_EVENT:
-                stddevs.append(tau+dists.rjb*0)
+                stddevs.append(tau + dists.rjb * 0)
         return stddevs
 
     CONSTS = {"Rref": 1.0}
