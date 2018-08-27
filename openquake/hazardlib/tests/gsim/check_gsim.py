@@ -33,6 +33,7 @@ from openquake.hazardlib.gsim.base import GroundShakingIntensityModel, IPE
 from openquake.hazardlib.contexts import (SitesContext, RuptureContext,
                                           DistancesContext)
 from openquake.hazardlib.imt import registry
+from openquake.hazardlib.imt import from_string
 
 def check_gsim(gsim_cls, datafile, max_discrep_percentage, debug=False):
     """
@@ -108,16 +109,8 @@ def check_gsim(gsim_cls, datafile, max_discrep_percentage, debug=False):
 
             discrep_percentage = numpy.abs(
                 result / expected_result * 100 - 100)
-
             discrepancies.extend(discrep_percentage)
             errors += (discrep_percentage > max_discrep_percentage).sum()
-
-            
-            if max(discrep_percentage) > 3.5:
-                print(imt)
-                print(result)
-                print(expected_result)
-
 
             if errors and debug:
                 msg = 'file %r line %r imt %r: expected %s %f != %f ' \
@@ -265,6 +258,7 @@ def _parse_csv_line(headers, values, req_site_params):
     dctx = DistancesContext()
     expected_results = {}
     stddev_types = result_type = damping = None
+
     for param, value in zip(headers, values):
         if param == 'result_type':
             value = value.upper()
@@ -300,47 +294,11 @@ def _parse_csv_line(headers, values, req_site_params):
         else:
             # value is the expected result (of result_type type)
             value = float(value)
-
-            #if param == 'pga':
-            #    imt = PGA()
-            #elif param == 'pgv':
-            #    imt = PGV()
-            #elif param == 'pgd':
-            #    imt = PGD()
-            #elif param == 'cav':
-            #    imt = CAV()
-            #elif param == 'mmi':
-            #    imt = MMI()
-            #elif param == 'arias':
-            #    imt = IA()
-            #elif param == "rsd595":
-            #    imt = RSD595()
-            #elif param == "rsd575":
-            #    imt = RSD575()
-            #elif param == "rsd2080":
-            #    imt = RSD2080()
-            #elif param.lower().startswith('t='):
-            #    T,Cy = param.split(';')
-            #    T = float(T[len('t='):])
-            #    Cy = float(Cy[len('cy='):])
-            #    imt = SDI(period=T,Cy=Cy)
-            #elif param.lower().startswith('saavg'):
-            #    period = float(param[6:-1])
-            #    imt = SAAVG(period)
-            #elif param.lower().startswith('fiv3'):
-            #    period = float(param[5:-1])
-            #    imt = FIV3(period)
-            #else:
-            #    period = float(param)
-            #    assert damping is not None
-            #    imt = SA(period, damping)
-
             if param == 'arias':  # ugly legacy corner case
                 param = 'ia'
-            imtclass = registry.get(param.upper(), None)
-            if imtclass:
-                imt = imtclass()
-            else:  # assume the IMT is a Spectral Acceleration
+            try:    # The title of the column should be IMT(args)
+                imt = from_string(param.upper())
+            except KeyError:  # Then it is just a period for SA
                 imt = registry['SA'](float(param), damping)
 
             expected_results[imt] = numpy.array([value])
